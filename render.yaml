@@ -1,0 +1,25 @@
+services:
+  # Backend API Service
+  - type: web
+    name: rongrani-backend
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - fromGroup: rongrani-secrets
+    autoDeploy: true
+    
+  # Keep-alive cron job (pings backend every 14 minutes to prevent sleep)
+  - type: cron
+    name: rongrani-keepalive
+    env: node
+    schedule: "*/14 * * * *"
+    buildCommand: npm install axios
+    startCommand: node -e "const axios = require('axios'); axios.get('https://rongrani.onrender.com/api/health').then(() => console.log('Ping successful')).catch(console.error);"
