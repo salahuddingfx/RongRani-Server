@@ -13,7 +13,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Image not found' });
     }
 
-    const image = await ImageAsset.findById(id).lean();
+    const image = await ImageAsset.findById(id);
     if (!image?.data) {
       return res.status(404).json({ message: 'Image not found' });
     }
