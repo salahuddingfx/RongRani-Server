@@ -658,6 +658,24 @@ const emailTemplates = {
 
     return emailBaseTemplate(`New Message: ${data.subject}`, content, `Message from ${data.name}`);
   },
+
+  // 13. Registration OTP Email
+  registrationOtp: (data) => {
+    const content = `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="color: #111827; margin-top: 10px; font-size: 24px;">Verify Your Account</h2>
+        <p style="font-size: 16px; color: #4b5563;">Hello <strong>${data.name}</strong>, thank you for registering with RongRani. Please use the verification code below to confirm your account.</p>
+      </div>
+
+      <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; padding: 30px; margin-bottom: 30px; text-align: center;">
+        <h3 style="color: #be123c; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; font-size: 14px;">Your One-Time Password (OTP)</h3>
+        <div style="display: inline-block; background-color: #ffffff; padding: 15px 35px; border: 2px solid #be123c; border-radius: 8px; font-family: monospace; font-size: 32px; font-weight: bold; color: #be123c; letter-spacing: 4px;">${data.otp}</div>
+        <p style="color: #881337; margin-top: 15px; font-size: 12px;">This OTP is valid for 15 minutes. Do not share this code with anyone.</p>
+      </div>
+    `;
+
+    return emailBaseTemplate('Verify Your RongRani Account', content, 'Use this OTP to complete your registration.');
+  },
 };
 
 // Send email function
@@ -817,11 +835,21 @@ const sendContactMessage = (data) => {
   );
 };
 
+const sendRegistrationOtp = (email, name, otp) => {
+  return sendEmail(
+    email,
+    `Verify Your Account - RongRani`,
+    'registrationOtp',
+    { name, otp }
+  );
+};
+
 module.exports = {
   sendEmail,
   sendOrderConfirmation,
   sendOrderStatusUpdate,
   sendReviewRequest,
   sendLowStockAlert,
-  sendContactMessage
+  sendContactMessage,
+  sendRegistrationOtp
 };
