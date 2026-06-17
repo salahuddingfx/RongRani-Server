@@ -10,6 +10,8 @@ const router = express.Router();
 // Public routes
 router.post('/register', authLimiter, controller.register);
 router.post('/login', authLimiter, controller.login);
+router.post('/verify-otp', authLimiter, controller.verifyOtp);
+router.post('/resend-otp', authLimiter, controller.resendOtp);
 router.post('/forgot-password', authLimiter, controller.forgotPassword);
 router.post('/reset-password', authLimiter, controller.resetPassword);
 router.get('/verify-email/:token', controller.verifyEmail);
