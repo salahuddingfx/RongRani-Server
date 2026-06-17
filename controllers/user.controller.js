@@ -24,6 +24,7 @@ const updateUserProfile = async (req, res) => {
     user.email = req.body.email || user.email;
     user.phone = req.body.phone || user.phone;
     user.address = req.body.address || user.address;
+    user.avatar = req.body.avatar !== undefined ? req.body.avatar : user.avatar;
 
     const updatedUser = await user.save();
 
