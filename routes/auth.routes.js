@@ -17,5 +17,6 @@ router.get('/verify-email/:token', controller.verifyEmail);
 // Protected routes
 router.post('/logout', auth, controller.logout);
 router.post('/refresh-token', controller.refreshToken);
+router.put('/change-password', auth, controller.changePassword);
 
 module.exports = router;
