@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { sendEmail } = require('../services/emailService');
+const { sendEmail, sendRegistrationOtp } = require('../services/emailService');
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -22,41 +22,33 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    // Create user (unverified by default)
     const user = await User.create({
       name,
       email,
       password,
+      isVerified: false,
+      otp,
+      otpExpire,
     });
 
-    // Send welcome email
+    // Send verification OTP email
     try {
-      console.log('📧 Attempting to send welcome email to:', email);
-      await sendEmail(email, 'Welcome to RongRani', 'welcome', { name });
-      console.log('✅ Welcome email sent successfully to:', email);
-
-      // Send admin notification about new user
-      console.log('📧 Sending new user notification to admin...');
-      await sendEmail(
-        process.env.SUPER_ADMIN_EMAIL || 'info.rongrani@gmail.com',
-        '🆕 New User Registered - RongRani',
-        'adminNewUser',
-        { userName: name, userEmail: email, registeredAt: new Date().toLocaleString() }
-      );
-      console.log('✅ Admin notification sent');
+      console.log('📧 Sending registration OTP to:', email);
+      await sendRegistrationOtp(email, name, otp);
+      console.log('✅ OTP sent successfully to:', email);
     } catch (emailError) {
-      console.error('❌ Welcome email failed:', emailError.message);
-      console.error('Full error:', emailError);
+      console.error('❌ OTP email failed:', emailError.message);
     }
 
-    const token = generateToken(user._id);
-
     res.status(201).json({
-      _id: user._id,
-      name: user.name,
+      message: 'OTP sent to your email. Please verify your account.',
       email: user.email,
-      role: user.role,
-      token,
+      requiresVerification: true,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -73,6 +65,28 @@ const login = async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check if email is verified
+    if (!user.isVerified) {
+      // Generate new OTP and send it
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.otp = otp;
+      user.otpExpire = Date.now() + 15 * 60 * 1000; // 15 mins
+      await user.save();
+
+      try {
+        console.log('📧 Sending new registration OTP to unverified user:', email);
+        await sendRegistrationOtp(user.email, user.name, otp);
+      } catch (err) {
+        console.error('Failed to resend OTP during login:', err);
+      }
+
+      return res.status(403).json({
+        message: 'Account is not verified. A verification OTP has been sent to your email.',
+        email: user.email,
+        requiresVerification: true,
+      });
     }
 
     // Update last login
