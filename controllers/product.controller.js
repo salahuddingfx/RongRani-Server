@@ -329,8 +329,8 @@ const submitReview = async (req, res) => {
     const { rating, title, comment, guestEmail, orderId } = req.body;
 
     // Validate required fields
-    if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    if (!rating || rating < 0.5 || rating > 5) {
+      return res.status(400).json({ message: 'Rating must be between 0.5 and 5' });
     }
 
     if (!comment || comment.trim().length < 10) {
