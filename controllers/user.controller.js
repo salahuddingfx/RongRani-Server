@@ -139,7 +139,7 @@ const uploadAvatar = async (req, res) => {
       uploadedBy: req.user?._id,
     });
 
-    const imageUrl = `${req.protocol}://${req.get('host')}/api/images/${imageAsset._id}`;
+    const imageUrl = `/api/images/${imageAsset._id}`;
 
     res.json({
       url: imageUrl,
