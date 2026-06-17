@@ -16,8 +16,20 @@ const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    // Validations
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({ message: 'Name must be at least 2 characters long' });
+    }
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    if (!email || !emailRegex.test(email.toLowerCase())) {
+      return res.status(400).json({ message: 'Please enter a valid email address' });
+    }
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
     // Check if user exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: email.toLowerCase() });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
