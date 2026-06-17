@@ -77,6 +77,7 @@ exports.createFlashSale = async (req, res) => {
 // Update flash sale (Admin)
 exports.updateFlashSale = async (req, res) => {
     try {
+        console.log("updateFlashSale body:", req.body);
         const flashSale = await FlashSale.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true
