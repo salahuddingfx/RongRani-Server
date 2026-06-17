@@ -296,6 +296,91 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+// @desc    Verify registration OTP
+// @route   POST /api/auth/verify-otp
+// @access  Public
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'Account is already verified' });
+    }
+
+    if (!user.otp || user.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    if (user.otpExpire < Date.now()) {
+      return res.status(400).json({ message: 'OTP has expired' });
+    }
+
+    // Mark verified
+    user.isVerified = true;
+    user.otp = undefined;
+    user.otpExpire = undefined;
+    await user.save();
+
+    // Send welcome email now!
+    try {
+      await sendEmail(user.email, 'Welcome to RongRani', 'welcome', { name: user.name });
+      await sendEmail(
+        process.env.SUPER_ADMIN_EMAIL || 'info.rongrani@gmail.com',
+        '🆕 New User Registered - RongRani',
+        'adminNewUser',
+        { userName: user.name, userEmail: user.email, registeredAt: new Date().toLocaleString() }
+      );
+    } catch (emailError) {
+      console.error('Welcome email error:', emailError);
+    }
+
+    const token = generateToken(user._id);
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Resend registration OTP
+// @route   POST /api/auth/resend-otp
+// @access  Public
+const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'Account is already verified' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpire = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    await sendRegistrationOtp(user.email, user.name, otp);
+
+    res.json({ message: 'New OTP sent to email' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -307,4 +392,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   verifyEmail,
+  verifyOtp,
+  resendOtp,
 };
