@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
+const ImageAsset = require('../models/ImageAsset');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -121,6 +122,35 @@ const getUserWishlist = async (req, res) => {
   }
 };
 
+// @desc    Upload user profile avatar
+// @route   POST /api/users/avatar
+// @access  Private
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const imageAsset = await ImageAsset.create({
+      data: req.file.buffer,
+      contentType: req.file.mimetype,
+      filename: req.file.originalname,
+      size: req.file.size,
+      uploadedBy: req.user?._id,
+    });
+
+    const imageUrl = `${req.protocol}://${req.get('host')}/api/images/${imageAsset._id}`;
+
+    res.json({
+      url: imageUrl,
+      publicId: imageAsset._id.toString(),
+      storage: 'mongodb',
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getUserProfile,
   updateUserProfile,
@@ -129,4 +159,5 @@ module.exports = {
   addToWishlist,
   removeFromWishlist,
   getUserWishlist,
+  uploadAvatar,
 };
