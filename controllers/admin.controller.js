@@ -3,6 +3,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 const Banner = require('../models/Banner');
+const { escapeRegex } = require('../utils/sanitize');
 const EmailLog = require('../models/EmailLog');
 const HotOffer = require('../models/HotOffer');
 const DeliverySetting = require('../models/DeliverySetting');
