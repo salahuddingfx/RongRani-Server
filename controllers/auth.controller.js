@@ -14,7 +14,7 @@ const generateToken = (id) => {
 // @access  Public
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, username } = req.body;
 
     // Validations
     if (!name || name.trim().length < 2) {
@@ -26,6 +26,20 @@ const register = async (req, res) => {
     }
     if (!password || password.length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    }
+
+    // Validate username if provided
+    if (username) {
+      if (username.length < 3 || username.length > 30) {
+        return res.status(400).json({ message: 'Username must be 3-30 characters long' });
+      }
+      if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        return res.status(400).json({ message: 'Username can only contain letters, numbers and underscores' });
+      }
+      const usernameExists = await User.findOne({ username: username.toLowerCase() });
+      if (usernameExists) {
+        return res.status(400).json({ message: 'Username already taken' });
+      }
     }
 
     // Check if user exists
@@ -43,6 +57,7 @@ const register = async (req, res) => {
       name,
       email,
       password,
+      username: username ? username.toLowerCase() : undefined,
       isVerified: false,
       otp,
       otpExpire,
