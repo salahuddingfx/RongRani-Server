@@ -163,6 +163,7 @@ const getMe = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      username: user.username,
       role: user.role,
       avatar: user.avatar,
       address: user.address,
@@ -184,12 +185,26 @@ const updateProfile = async (req, res) => {
     if (req.body.phone) user.phone = req.body.phone;
     if (req.body.address) user.address = req.body.address;
 
+    // Handle username update
+    if (req.body.username && req.body.username !== user.username) {
+      const newUsername = req.body.username.toLowerCase();
+      if (!/^[a-zA-Z0-9_]+$/.test(newUsername) || newUsername.length < 3 || newUsername.length > 30) {
+        return res.status(400).json({ message: 'Username must be 3-30 characters, letters/numbers/underscores only' });
+      }
+      const taken = await User.findOne({ username: newUsername, _id: { $ne: user._id } });
+      if (taken) {
+        return res.status(400).json({ message: 'Username already taken' });
+      }
+      user.username = newUsername;
+    }
+
     await user.save();
 
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
+      username: user.username,
       role: user.role,
       avatar: user.avatar,
       address: user.address,
