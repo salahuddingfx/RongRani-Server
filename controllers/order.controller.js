@@ -65,7 +65,7 @@ const searchOrdersByContact = async (req, res) => {
       // Search for orders containing products with matching names
       const productNameLower = productName.toString().trim().toLowerCase();
       const products = await Product.find({
-        name: { $regex: productNameLower, $options: 'i' }
+        name: { $regex: escapeRegex(productNameLower), $options: 'i' }
       }).select('_id');
 
       if (products.length > 0) {
