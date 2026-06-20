@@ -28,6 +28,13 @@ const {
 	updateReviewStatus,
 	deleteReview,
 } = require('../controllers/admin.controller');
+const {
+	getAllGiftCards,
+	createGiftCard,
+	updateGiftCard,
+	deleteGiftCard,
+	toggleGiftCard,
+} = require('../controllers/giftCard.controller');
 const { auth, authorize } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -84,5 +91,12 @@ router.delete('/reviews/:id', deleteReview);
 // Email logs
 router.get('/email-logs', getEmailLogs);
 router.post('/email-logs/:id/resend', resendEmail);
+
+// Gift card management
+router.get('/gift-cards', getAllGiftCards);
+router.post('/gift-cards', createGiftCard);
+router.put('/gift-cards/:id', updateGiftCard);
+router.patch('/gift-cards/:id/toggle', toggleGiftCard);
+router.delete('/gift-cards/:id', deleteGiftCard);
 
 module.exports = router;
