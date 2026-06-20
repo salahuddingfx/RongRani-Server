@@ -400,6 +400,7 @@ const verifyOtp = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      username: user.username,
       role: user.role,
       token,
     });
