@@ -35,9 +35,12 @@ const io = new Server(server, {
         process.env.FRONTEND_URL,
         process.env.CLIENT_URL,
         process.env.ADMIN_URL,
+        process.env.LOCAL_CLIENT_URL,
+        process.env.LOCAL_ADMIN_URL,
         'http://localhost:5173',
-        'http://localhost:3000',
-        'https://rongrani.vercel.app'
+        'http://localhost:5174',
+        'https://rongrani.vercel.app',
+        'https://rongrani-admin.vercel.app',
       ].filter(Boolean);
 
       if (!origin || allowedOrigins.includes(origin) || origin.includes('localhost') || (origin.endsWith('.vercel.app') && origin.includes('rongrani'))) {
