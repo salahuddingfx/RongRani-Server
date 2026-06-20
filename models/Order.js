@@ -249,22 +249,36 @@ const orderSchema = new mongoose.Schema({
 orderSchema.pre('save', async function (next) {
   this.updatedAt = Date.now();
 
-  // Generate unique branded order ID: RR-XXXXXX (6 alphanumeric chars)
+  // Generate unique branded order ID: RR-PRODUCT-XXXX
   if (!this.orderId) {
+    // Get first product name, slugify it
+    const firstName = (this.items?.[0]?.name || 'ITEM')
+      .toUpperCase()
+      .replace(/[^A-Z0-9\s]/g, '')  // remove special chars
+      .replace(/\s+/g, '-')          // spaces to hyphens
+      .slice(0, 15);                  // max 15 chars
+
     let isUnique = false;
-    while (!isUnique) {
+    let attempt = 0;
+    while (!isUnique && attempt < 50) {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I, O, 0, 1 to avoid confusion
       let suffix = '';
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 4; i++) {
         suffix += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      const potentialId = `RR-${suffix}`;
+      const potentialId = `RR-${firstName}-${suffix}`;
 
       const existing = await mongoose.models.Order.findOne({ orderId: potentialId });
       if (!existing) {
         this.orderId = potentialId;
         isUnique = true;
       }
+      attempt++;
+    }
+
+    // Fallback if all attempts collide (extremely unlikely)
+    if (!isUnique) {
+      this.orderId = `RR-${firstName}-${Date.now().toString().slice(-4)}`;
     }
   }
   next();
