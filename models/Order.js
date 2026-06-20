@@ -249,16 +249,16 @@ const orderSchema = new mongoose.Schema({
 orderSchema.pre('save', async function (next) {
   this.updatedAt = Date.now();
 
-  // Generate short order ID if not exists
+  // Generate unique branded order ID: RR-XXXXXX (6 alphanumeric chars)
   if (!this.orderId) {
-    // Generate 7-digit random number (1000000 - 9999999)
-    // Using a loop to ensure uniqueness (though collision probability is low)
     let isUnique = false;
     while (!isUnique) {
-      const min = 1000000;
-      const max = 9999999;
-      const randomId = Math.floor(Math.random() * (max - min + 1)) + min;
-      const potentialId = randomId.toString();
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No I, O, 0, 1 to avoid confusion
+      let suffix = '';
+      for (let i = 0; i < 6; i++) {
+        suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const potentialId = `RR-${suffix}`;
 
       const existing = await mongoose.models.Order.findOne({ orderId: potentialId });
       if (!existing) {
