@@ -16,12 +16,6 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    console.log('🔒 Auth middleware:', {
-      email: user.email,
-      role: user.role,
-      tokenId: decoded.id.substring(0, 8) + '...'
-    });
-
     req.user = user;
     next();
   } catch (error) {
@@ -60,24 +54,14 @@ const optionalAuth = async (req, res, next) => {
 
 const authorize = (roles) => {
   return (req, res, next) => {
-    console.log('🔐 Authorize middleware:', {
-      userEmail: req.user?.email,
-      userRole: req.user?.role,
-      allowedRoles: roles,
-      isAuthorized: req.user && roles.includes(req.user.role)
-    });
-
     if (!req.user) {
-      console.log('❌ Auth failed: No user');
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
     if (!roles.includes(req.user.role)) {
-      console.log('❌ Auth failed: Role not allowed');
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    console.log('✅ Auth successful');
     next();
   };
 };

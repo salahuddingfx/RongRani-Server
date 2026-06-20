@@ -115,6 +115,10 @@ app.use('/', require('./routes/sitemap.routes')); // SEO: Dynamic sitemap
 app.get('/api/placeholder/:width/:height', async (req, res) => {
   try {
     const { width, height } = req.params;
+    // Validate dimensions are positive integers
+    if (!/^\d+$/.test(width) || !/^\d+$/.test(height) || Number(width) > 2000 || Number(height) > 2000) {
+      return res.status(400).send('Invalid dimensions');
+    }
     const sharp = require('sharp');
 
     const svg = `
@@ -147,7 +151,11 @@ app.use((req, res) => {
 /* -------------------- ERROR HANDLER -------------------- */
 app.use((err, _req, res, _next) => {
   console.error('🔥 Error:', err.message);
-  res.status(500).json({ message: err.message || 'Server error' });
+  if (process.env.NODE_ENV === 'production') {
+    res.status(500).json({ message: 'Internal server error' });
+  } else {
+    res.status(500).json({ message: err.message || 'Server error' });
+  }
 });
 
 module.exports = app;
