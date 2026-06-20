@@ -9,6 +9,17 @@ const resolveAbsoluteUrl = (baseUrl, value) => {
   return `${baseUrl}${value.startsWith('/') ? value : `/${value}`}`;
 };
 
+// HTML entity encoder to prevent XSS
+const esc = (str) => {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 router.get('/product/:id', async (req, res) => {
   try {
     const identifier = req.params.id;
@@ -45,25 +56,25 @@ router.get('/product/:id', async (req, res) => {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>${product.name} | RongRani</title>
-  <meta name="description" content="${description}" />
+  <title>${esc(product.name)} | RongRani</title>
+  <meta name="description" content="${esc(description)}" />
   <meta property="og:site_name" content="RongRani" />
   <meta property="og:type" content="product" />
-  <meta property="og:title" content="${product.name}" />
-  <meta property="og:description" content="${description}" />
+  <meta property="og:title" content="${esc(product.name)}" />
+  <meta property="og:description" content="${esc(description)}" />
   <meta property="og:url" content="${canonicalUrl}" />
   <meta property="og:image" content="${imageUrl}" />
-  <meta property="product:price:amount" content="${product.price || 0}" />
+  <meta property="product:price:amount" content="${Number(product.price) || 0}" />
   <meta property="product:price:currency" content="BDT" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${product.name}" />
-  <meta name="twitter:description" content="${description}" />
+  <meta name="twitter:title" content="${esc(product.name)}" />
+  <meta name="twitter:description" content="${esc(description)}" />
   <meta name="twitter:image" content="${imageUrl}" />
   <meta http-equiv="refresh" content="0; url=${canonicalUrl}" />
   <link rel="canonical" href="${canonicalUrl}" />
 </head>
 <body>
-  <p>Redirecting to <a href="${canonicalUrl}">${product.name}</a>...</p>
+  <p>Redirecting to <a href="${canonicalUrl}">${esc(product.name)}</a>...</p>
   <script>window.location.replace(${JSON.stringify(canonicalUrl)});</script>
 </body>
 </html>`);

@@ -27,6 +27,8 @@ const getProducts = async (req, res) => {
     const maxPrice = req.query.maxPrice;
     const search = req.query.search;
     const sort = req.query.sort || '-createdAt';
+    const allowedSorts = ['-createdAt','createdAt','price','-price','name','-name','stock','-stock','rating','-rating'];
+    const safeSort = allowedSorts.includes(sort) ? sort : '-createdAt';
 
     let query = { isActive: true };
 
@@ -43,7 +45,7 @@ const getProducts = async (req, res) => {
 
     const count = await Product.countDocuments(query);
     const products = await Product.find(query)
-      .sort(sort)
+      .sort(safeSort)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
 
@@ -494,6 +496,8 @@ const canReviewProduct = async (req, res) => {
 const searchProducts = async (req, res) => {
   try {
     const { q, category, minPrice, maxPrice, sort = '-createdAt' } = req.query;
+    const allowedSorts = ['-createdAt','createdAt','price','-price','name','-name','stock','-stock','rating','-rating'];
+    const safeSort2 = allowedSorts.includes(sort) ? sort : '-createdAt';
 
     let query = { isActive: true };
 
@@ -509,7 +513,7 @@ const searchProducts = async (req, res) => {
     }
 
     const products = await Product.find(query)
-      .sort(sort)
+      .sort(safeSort2)
       .limit(50);
 
     res.json(products);

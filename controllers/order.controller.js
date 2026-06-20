@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 const User = require('../models/User');
 const DeliverySetting = require('../models/DeliverySetting');
+const { escapeRegex } = require('../utils/sanitize');
 const { sendOrderConfirmation, sendEmail, sendLowStockAlert } = require('../services/emailService');
 const { generateInvoice } = require('../utils/pdfGenerator');
 const { calculateDelivery, getDeliveryDisplay } = require('../utils/deliveryCalculator');
@@ -197,10 +198,15 @@ const createOrder = async (req, res) => {
     const orderItems = [];
 
     for (const item of items) {
-      const product = await Product.findById(item.product);
-      if (!product || !product.isActive || product.stock < item.quantity) {
+      // Atomic stock decrement — prevents race condition / overselling
+      const product = await Product.findOneAndUpdate(
+        { _id: item.product, isActive: true, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+      if (!product) {
         return res.status(400).json({
-          message: `Product ${product?.name || 'Unknown'} is not available or insufficient stock`,
+          message: `Product is not available or insufficient stock`,
         });
       }
 
@@ -219,10 +225,6 @@ const createOrder = async (req, res) => {
         image: imageUrl,
         attributes: item.attributes || [],
       });
-
-      // Update product stock
-      product.stock -= item.quantity;
-      await product.save();
 
       // Check for Low Stock
       if (product.stock <= 5) {

@@ -161,6 +161,11 @@ exports.initPayment = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
+        // Ownership check: only the order owner or admin can initiate payment
+        if (req.user && order.user && order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+            return res.status(403).json({ success: false, message: 'Not authorized to pay for this order' });
+        }
+
         const amount = order.total;
         const method = order.paymentMethod; // Get method from the saved order
 

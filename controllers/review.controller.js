@@ -1,5 +1,6 @@
 const Review = require('../models/Review');
 const Product = require('../models/Product');
+const { escapeRegex } = require('../utils/sanitize');
 
 /**
  * @desc    Get all approved reviews for public reviews page
@@ -15,11 +16,11 @@ const getPublicReviews = async (req, res) => {
         // Search by comment or product name
         if (search) {
             // Find products that match search to include their reviews
-            const products = await Product.find({ name: { $regex: search, $options: 'i' } }).select('_id');
+            const products = await Product.find({ name: { $regex: escapeRegex(search), $options: 'i' } }).select('_id');
             const productIds = products.map(p => p._id);
 
             query.$or = [
-                { comment: { $regex: search, $options: 'i' } },
+                { comment: { $regex: escapeRegex(search), $options: 'i' } },
                 { product: { $in: productIds } }
             ];
         }

@@ -7,8 +7,8 @@ const router = express.Router();
 // Calculate delivery charge (for checkout preview)
 router.post('/calc-delivery', optionalAuth, calculateDeliveryCharge);
 
-// Search orders by phone/email (no order ID needed)
-router.post('/search', searchOrdersByContact);
+// Search orders by phone/email (admin only)
+router.post('/search', auth, authorize(['admin', 'super_admin']), searchOrdersByContact);
 
 // Create order (guest or authenticated)
 router.post('/', optionalAuth, createOrder);

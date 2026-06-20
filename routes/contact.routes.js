@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { sendContactMessage } = require('../services/emailService');
+const { authLimiter } = require('../middlewares/rateLimit.middleware');
 
-// POST /api/contact - Send contact email
-router.post('/', async (req, res) => {
+// POST /api/contact - Send contact email (rate limited)
+router.post('/', authLimiter, async (req, res) => {
     const { name, email, phone, subject, message } = req.body;
 
     if (!email || !message) {

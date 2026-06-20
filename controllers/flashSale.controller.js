@@ -77,7 +77,12 @@ exports.createFlashSale = async (req, res) => {
 // Update flash sale (Admin)
 exports.updateFlashSale = async (req, res) => {
     try {
-        const flashSale = await FlashSale.findByIdAndUpdate(req.params.id, req.body, {
+        const { title, description, discountPercent, startDate, endDate, isActive, applicableProducts, applicableCategories, maxUses, usesCount } = req.body;
+        const updateData = { title, description, discountPercent, startDate, endDate, isActive, applicableProducts, applicableCategories, maxUses, usesCount };
+        // Remove undefined fields so we don't overwrite with null
+        Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+        const flashSale = await FlashSale.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true
         });

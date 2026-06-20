@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const { escapeRegex } = require('../utils/sanitize');
 
 // @desc    Get search suggestions
 // @route   GET /api/search/suggestions
@@ -20,8 +21,8 @@ exports.getSearchSuggestions = async (req, res) => {
         const suggestions = await Product.find({
             isActive: true,
             $or: [
-                { name: { $regex: q, $options: 'i' } },
-                { tags: { $regex: q, $options: 'i' } }
+                { name: { $regex: escapeRegex(q), $options: 'i' } },
+                { tags: { $regex: escapeRegex(q), $options: 'i' } }
             ]
         })
             .select('name category price images _id')
@@ -35,7 +36,7 @@ exports.getSearchSuggestions = async (req, res) => {
 
         // Search for matching categories
         const categories = await Product.distinct('category', {
-            category: { $regex: q, $options: 'i' },
+            category: { $regex: escapeRegex(q), $options: 'i' },
             isActive: true
         });
 

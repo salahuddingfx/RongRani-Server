@@ -203,6 +203,21 @@ const updateUser = async (req, res) => {
 const updateUserRole = async (req, res) => {
   try {
     const { role } = req.body;
+    const validRoles = ['user', 'admin', 'super_admin'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    // Prevent self-role-escalation
+    if (req.params.id === req.user._id.toString()) {
+      return res.status(400).json({ message: 'Cannot change your own role' });
+    }
+
+    // Prevent escalation beyond your own privilege level
+    if (req.user.role === 'admin' && role === 'super_admin') {
+      return res.status(403).json({ message: 'Admin cannot assign super_admin role' });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { role },
@@ -705,8 +720,9 @@ const getAllProducts = async (req, res) => {
 // @access  Private/Admin
 const createCoupon = async (req, res) => {
   try {
+    const { code, type, value, minOrderValue, maxDiscount, startDate, endDate, usageLimit, userLimit, description, isActive, applicableCategories, applicableProducts } = req.body;
     const coupon = await Coupon.create({
-      ...req.body,
+      code, type, value, minOrderValue, maxDiscount, startDate, endDate, usageLimit, userLimit, description, isActive, applicableCategories, applicableProducts,
       createdBy: req.user._id,
     });
 
@@ -807,7 +823,8 @@ const getBanners = async (req, res) => {
 // @access  Private/Admin
 const updateBanner = async (req, res) => {
   try {
-    let updateData = { ...req.body };
+    const { title, subtitle, link, sortOrder, isActive } = req.body;
+    let updateData = { title, subtitle, link, sortOrder, isActive };
     if (req.body.image) {
       updateData.image = typeof req.body.image === 'string'
         ? { url: req.body.image.trim() }
