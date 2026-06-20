@@ -72,9 +72,20 @@ const register = async (req, res) => {
 // @access  Public
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
 
-    const user = await User.findOne({ email }).select('+password');
+    if (!identifier || !password) {
+      return res.status(400).json({ message: 'Email/username and password are required' });
+    }
+
+    // Find user by email OR username
+    const user = await User.findOne({
+      $or: [
+        { email: identifier.toLowerCase() },
+        { username: identifier.toLowerCase() },
+      ],
+    }).select('+password');
+
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -88,7 +99,7 @@ const login = async (req, res) => {
       await user.save();
 
       try {
-        console.log('📧 Sending new registration OTP to unverified user:', email);
+        console.log('📧 Sending new registration OTP to unverified user:', user.email);
         await sendRegistrationOtp(user.email, user.name, otp);
       } catch (err) {
         console.error('Failed to resend OTP during login:', err);
@@ -109,6 +120,7 @@ const login = async (req, res) => {
 
     console.log('🔓 User logged in:', {
       email: user.email,
+      username: user.username,
       role: user.role,
       token: token.substring(0, 20) + '...'
     });
@@ -117,6 +129,7 @@ const login = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      username: user.username,
       role: user.role,
       token,
     });
