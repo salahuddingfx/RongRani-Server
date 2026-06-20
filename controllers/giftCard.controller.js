@@ -1,4 +1,5 @@
 const GiftCard = require('../models/GiftCard');
+const { escapeRegex } = require('../utils/sanitize');
 
 // @desc    Get all gift cards (admin)
 // @route   GET /api/admin/gift-cards
@@ -11,7 +12,7 @@ const getAllGiftCards = async (req, res) => {
     if (status === 'inactive') filter.isActive = false;
     if (status === 'expired') filter.expiryDate = { $lt: new Date() };
     if (status === 'depleted') filter.balance = 0;
-    if (search) filter.code = { $regex: search.toUpperCase(), $options: 'i' };
+    if (search) filter.code = { $regex: escapeRegex(search).toUpperCase(), $options: 'i' };
 
     const total = await GiftCard.countDocuments(filter);
     const cards = await GiftCard.find(filter)
