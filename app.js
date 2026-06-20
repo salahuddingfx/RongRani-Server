@@ -99,6 +99,7 @@ app.use('/api/ai', require('./routes/ai.routes'));
 app.use('/api/categories', require('./routes/category.routes'));
 app.use('/api/promotions', require('./routes/promotion.routes'));
 app.use('/api/coupons', require('./routes/coupon.routes'));
+app.use('/api/gift-cards', require('./routes/giftCard.routes'));
 app.use('/api/payment', require('./routes/payment.routes'));
 app.use('/api/flash-sales', require('./routes/flashSale.routes'));
 app.use('/api/analytics', require('./routes/analytics.routes'));

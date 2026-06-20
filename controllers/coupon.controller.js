@@ -63,6 +63,62 @@ const validateCoupon = async (req, res) => {
   }
 };
 
+// @desc    Find best applicable coupon for a subtotal
+// @route   POST /api/coupons/best
+// @access  Public
+const findBestCoupon = async (req, res) => {
+  try {
+    const { subtotal } = req.body || {};
+    const orderSubtotal = Number(subtotal || 0);
+
+    if (!Number.isFinite(orderSubtotal) || orderSubtotal <= 0) {
+      return res.status(400).json({ message: 'Subtotal must be a positive number' });
+    }
+
+    const now = new Date();
+    const coupons = await Coupon.find({
+      isActive: true,
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+    });
+
+    const eligible = [];
+
+    for (const coupon of coupons) {
+      if (coupon.minOrderValue && orderSubtotal < coupon.minOrderValue) continue;
+      if (coupon.usageLimit && coupon.usageCount >= coupon.usageLimit) continue;
+
+      let discount = 0;
+      if (coupon.type === 'percentage') {
+        discount = (orderSubtotal * coupon.value) / 100;
+        if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+          discount = coupon.maxDiscount;
+        }
+      } else {
+        discount = coupon.value;
+      }
+
+      eligible.push({
+        code: coupon.code,
+        type: coupon.type,
+        value: coupon.value,
+        discount,
+        minOrderValue: coupon.minOrderValue || 0,
+        maxDiscount: coupon.maxDiscount || null,
+        description: coupon.description || '',
+      });
+    }
+
+    eligible.sort((a, b) => b.discount - a.discount);
+
+    return res.json({ bestCoupon: eligible[0] || null });
+  } catch (error) {
+    console.error('Find best coupon error:', error);
+    return res.status(500).json({ message: 'Failed to find best coupon' });
+  }
+};
+
 module.exports = {
   validateCoupon,
+  findBestCoupon,
 };

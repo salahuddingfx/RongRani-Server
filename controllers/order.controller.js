@@ -176,6 +176,8 @@ const createOrder = async (req, res) => {
       couponCode,
       notes,
       giftMessage,
+      isGiftWrapped,
+      giftWrappingFee,
       guestInfo, // For guest checkout
     } = req.body;
 
@@ -281,7 +283,8 @@ const createOrder = async (req, res) => {
     });
 
     const shipping = deliveryResult.charge;
-    const total = subtotal + tax + shipping - discount;
+    const wrappingFee = Number(giftWrappingFee) || 0;
+    const total = subtotal + tax + shipping - discount + wrappingFee;
 
     // For manual mobile banking, COD (Advance Payment), and Full Prepayment, require transaction details upfront
     const manualPaymentMethods = ['bkash_manual', 'nagad_manual', 'rocket', 'upay', 'cod', 'full_payment'];
@@ -361,6 +364,8 @@ const createOrder = async (req, res) => {
         threshold: deliveryResult.threshold,
       },
       discount,
+      isGiftWrapped: !!isGiftWrapped,
+      giftWrappingFee: wrappingFee,
       total,
       coupon: coupon?._id,
       notes,
