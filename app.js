@@ -20,9 +20,12 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://127.0.0.1:5174',
   'https://rongrani.vercel.app',
+  'https://rongrani-admin.vercel.app',
   process.env.FRONTEND_URL,
   process.env.CLIENT_URL,
   process.env.ADMIN_URL,
+  process.env.LOCAL_CLIENT_URL,
+  process.env.LOCAL_ADMIN_URL,
 ].filter(Boolean);
 
 app.use(
